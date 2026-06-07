@@ -1,26 +1,41 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { useNoteStore } from "@/lib/store/noteStore";
 import { createNote } from "@/lib/api";
+import type { NoteTag } from "@/types/note";
+
 import css from "./NoteForm.module.css";
 
 export default function NoteForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { draft, setDraft, clearDraft } = useNoteStore();
 
-  const handleSubmit = async (formData: FormData) => {
-    const payload = {
-      title: formData.get("title") as string,
-      content: formData.get("content") as string,
-      tag: formData.get("tag") as any,
+  const mutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      clearDraft();
+      router.back();
+    },
+  });
+
+  const handleSubmit = (formData: FormData) => {
+    const payload: {
+      title: string;
+      content: string;
+      tag: NoteTag;
+    } = {
+      title: String(formData.get("title") || ""),
+      content: String(formData.get("content") || ""),
+      tag: formData.get("tag") as NoteTag,
     };
 
-    await createNote(payload);
-
-    clearDraft();
-    router.back();
+    mutation.mutate(payload);
   };
 
   return (
@@ -30,7 +45,9 @@ export default function NoteForm() {
         <input
           name="title"
           defaultValue={draft.title}
-          onChange={(e) => setDraft({ title: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setDraft({ title: e.target.value })
+          }
           className={css.input}
         />
       </div>
@@ -40,7 +57,9 @@ export default function NoteForm() {
         <textarea
           name="content"
           defaultValue={draft.content}
-          onChange={(e) => setDraft({ content: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            setDraft({ content: e.target.value })
+          }
           className={css.textarea}
         />
       </div>
@@ -50,7 +69,9 @@ export default function NoteForm() {
         <select
           name="tag"
           defaultValue={draft.tag}
-          onChange={(e) => setDraft({ tag: e.target.value as any })}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setDraft({ tag: e.target.value as NoteTag })
+          }
           className={css.select}
         >
           <option value="Todo">Todo</option>
@@ -70,8 +91,12 @@ export default function NoteForm() {
           Cancel
         </button>
 
-        <button type="submit" className={css.submitButton}>
-          Create note
+        <button
+          type="submit"
+          className={css.submitButton}
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? "Creating..." : "Create note"}
         </button>
       </div>
     </form>

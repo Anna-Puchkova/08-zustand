@@ -23,9 +23,11 @@ function parseTag(slug?: string): NoteTag | undefined {
 export async function generateMetadata({
   params,
 }: {
-  params: Params;
+  params: Promise<Params>;
 }): Promise<Metadata> {
-  const slugValue = params.slug?.[0];
+  const { slug } = await params;
+
+  const slugValue = slug?.[0];
   const tag = parseTag(slugValue);
 
   const title = tag ? `${tag} notes` : "All notes";
