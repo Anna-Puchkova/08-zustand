@@ -2,22 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebouncedCallback } from "use-debounce";
+import Link from "next/link";
+
 import { fetchNotes } from "@/lib/api";
+
 import NoteList from "@/components/NoteList/NoteList";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
-import NoteForm from "@/components/NoteForm/NoteForm";
-import { useDebouncedCallback } from "use-debounce";
 
 import type { NoteTag } from "@/types/note";
 import css from "./NotesPage.module.css";
-import Modal from "@/components/Modal/Modal";
 
-export default function NotesClient({ tag }: { tag?: NoteTag }) {
+type Props = {
+  tag?: NoteTag;
+};
+
+export default function NotesClient({ tag }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // reset when tag changes
   useEffect(() => {
     setPage(1);
     setSearch("");
@@ -46,21 +51,19 @@ export default function NotesClient({ tag }: { tag?: NoteTag }) {
         </div>
 
         <div className={css.center}>
-          <div className={css.center}>
-            {(data?.totalPages ?? 0) > 1 && (
-              <Pagination
-                pageCount={data?.totalPages ?? 0}
-                currentPage={page}
-                onPageChange={setPage}
-              />
-            )}
-          </div>
+          {(data?.totalPages ?? 0) > 1 && (
+            <Pagination
+              pageCount={data?.totalPages ?? 0}
+              currentPage={page}
+              onPageChange={setPage}
+            />
+          )}
         </div>
 
         <div className={css.right}>
-          <button className={css.button} onClick={() => setIsModalOpen(true)}>
+          <Link href="/notes/action/create" className={css.button}>
             + Add note
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -68,12 +71,6 @@ export default function NotesClient({ tag }: { tag?: NoteTag }) {
       {isError && <p>Error</p>}
 
       {data && <NoteList notes={data.notes} />}
-
-      {isModalOpen && (
-        <Modal>
-          <NoteForm />
-        </Modal>
-      )}
     </div>
   );
 }
