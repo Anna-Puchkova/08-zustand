@@ -70,8 +70,8 @@ export default function NotesClient({ tag }: { tag?: NoteTag }) {
       {data && <NoteList notes={data.notes} />}
 
       {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onClose={() => setIsModalOpen(false)} />
+        <Modal>
+          <NoteForm />
         </Modal>
       )}
     </div>

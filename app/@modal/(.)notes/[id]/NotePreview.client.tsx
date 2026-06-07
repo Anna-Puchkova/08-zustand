@@ -27,7 +27,7 @@ export default function NotePreview() {
   });
 
   return (
-    <Modal onClose={() => router.back()}>
+    <Modal>
       <div className={css.container}>
         <button onClick={() => router.back()}>Close</button>
 
