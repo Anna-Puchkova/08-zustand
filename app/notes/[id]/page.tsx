@@ -7,8 +7,39 @@ import {
   dehydrate,
 } from "@tanstack/react-query";
 
-interface Props {
+import type { Metadata } from "next";
+
+type Props = {
   params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const note = await fetchNoteById(params.id);
+
+  const title = note.title;
+  const description = note.content.slice(0, 100);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://07-routing-nextjs-five-ruby.vercel.app/notes/${params.id}`,
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+          width: 1200,
+          height: 630,
+          alt: note.title,
+        },
+      ],
+    },
+  };
 }
 
 export default async function NoteDetailsPage({ params }: Props) {
